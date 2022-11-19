@@ -7,6 +7,7 @@ import sys
 gpu_options = tf.compat.v1.GPUOptions(per_process_gpu_memory_fraction=0.98)
 sess = tf.compat.v1.Session(config=tf.compat.v1.ConfigProto(gpu_options=gpu_options))
 
+frame_w = frame_h = 512
 #conf = tf.ConfigProto()
 #conf.gpu_options.allow_growth=True
 #session = tf.Session(config=conf)
@@ -35,7 +36,7 @@ PATH_TO_CKPT = 'frozen_inference_graph.pb'
 PATH_TO_LABELS = 'annotations/label_map.pbtxt'
   
 # Path to image 
-PATH_TO_IMAGE =  'D:\\Centuriton\\Dynamic-Traffic\\Test\\images\\north.png'
+PATH_TO_IMAGE =  'test2.jpg'
 # Number of classes the object detector can identify 
 NUM_CLASSES = 1
   
@@ -93,20 +94,65 @@ image_expanded = np.expand_dims(image, axis = 0)
   
 # Draw the results of the detection (aka 'visualize the results') 
   
-vis_util.visualize_boxes_and_labels_on_image_array( 
-    image, 
-    np.squeeze(boxes), 
-    np.squeeze(classes).astype(np.int32), 
-    np.squeeze(scores), 
-    category_index, 
-    use_normalized_coordinates = True, 
-    line_thickness = 2, 
-    min_score_thresh = 0.95) 
-  
+# vis_util.visualize_boxes_and_labels_on_image_array(
+#     image,
+#     np.squeeze(boxes),
+#     np.squeeze(classes).astype(np.int32),
+#     np.squeeze(scores),
+#     category_index,
+#     use_normalized_coordinates = True,
+#     line_thickness = 2,
+#     min_score_thresh = 0.90)
+
+labels = []
+with open('./labels.txt', 'r') as file:
+	for line in file.read().splitlines():
+		a = line.split()#.readline()
+		a = a[-1]
+		#label = label.replace('\n', '')
+		a = str(a)
+		labels.append(a)
+
+
+best_boxes_roi = []
+best_boxes_scores = []
+best_boxes_classes = []
+for i in range(boxes.shape[0]):
+    temp = boxes[i, :30] * 512
+    best_boxes_roi.append(temp)
+    best_boxes_scores.append(scores[i, :30])
+    best_boxes_classes.append(classes[i, :30])
+best_boxes_roi = np.asarray(best_boxes_roi)
+best_boxes_scores = np.asarray(best_boxes_scores)
+best_boxes_classes = np.asarray(best_boxes_classes)
+classes=best_boxes_classes
+#print(labels,classes)
+for i in range(best_boxes_roi.shape[0]):
+    im = np.reshape(image_expanded[i], (512, 512, 3))
+
+    for j in range(30):
+
+        if best_boxes_scores[i][j] > 0.50 and int(classes[i][j])==8 :
+            x = int(best_boxes_roi[i][j][1])
+            y = int(best_boxes_roi[i][j][0])
+            x_max = int(best_boxes_roi[i][j][3])
+            y_max = int(best_boxes_roi[i][j][2])
+
+            cv2.rectangle(im, (x, y), (500, 500), (0, 255, 0), 2)
+            font = cv2.FONT_HERSHEY_SIMPLEX
+
+            cv2.putText(im, labels[int(classes[i][j])], (x, y), font, 1e-3 * 512, (255, 0, 0), 2)
+        # cv2.imshow('Output',im)
+            cv2.imshow('Object detector', im)
+            cv2.imwrite('ambu.jpg', im)
+            with open('val.txt', 'w') as file:
+                di={PATH_TO_IMAGE:str(best_boxes_scores[i][j])}
+                file.write(str(di))
+
 # All the results have been drawn on the image. Now display the image. 
-cv2.imshow('Object detector', image)
-cv2.imwrite('objectdetection2.jpg', image) 
-  
+#
+# cv2.imshow('Object detector', image)
+# cv2.imwrite('ambu.jpg', image)
 # Press any key to close the image 
 cv2.waitKey(0) 
   
