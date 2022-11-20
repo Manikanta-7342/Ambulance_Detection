@@ -1,1 +1,1 @@
-{'test2.jpg': '0.56397444'}
+{'Ambulances-Stuck-in-Traffic-Jam-in-City-1.jpg': '0.7924253'}

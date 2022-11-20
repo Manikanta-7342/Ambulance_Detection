@@ -36,7 +36,7 @@ PATH_TO_CKPT = 'frozen_inference_graph.pb'
 PATH_TO_LABELS = 'annotations/label_map.pbtxt'
   
 # Path to image 
-PATH_TO_IMAGE =  'test2.jpg'
+PATH_TO_IMAGE =  'Ambulances-Stuck-in-Traffic-Jam-in-City-1.jpg'
 # Number of classes the object detector can identify 
 NUM_CLASSES = 1
   
@@ -137,14 +137,15 @@ for i in range(best_boxes_roi.shape[0]):
             y = int(best_boxes_roi[i][j][0])
             x_max = int(best_boxes_roi[i][j][3])
             y_max = int(best_boxes_roi[i][j][2])
-
+            crop_img=im[y:y+y_max,x:x+x_max]
+            cv2.imwrite('croped_image.png',crop_img)
             cv2.rectangle(im, (x, y), (500, 500), (0, 255, 0), 2)
             font = cv2.FONT_HERSHEY_SIMPLEX
 
             cv2.putText(im, labels[int(classes[i][j])], (x, y), font, 1e-3 * 512, (255, 0, 0), 2)
         # cv2.imshow('Output',im)
             cv2.imshow('Object detector', im)
-            cv2.imwrite('ambu.jpg', im)
+            cv2.imwrite('ambu.png', im)
             with open('val.txt', 'w') as file:
                 di={PATH_TO_IMAGE:str(best_boxes_scores[i][j])}
                 file.write(str(di))
